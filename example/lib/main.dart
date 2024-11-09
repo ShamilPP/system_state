@@ -108,14 +108,9 @@ class _SystemStatePageState extends State<SystemStatePage> {
               'Battery State:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_batteryState != null)
-              Text('Level: ${_batteryState?.level ?? 'N/A'}%'),
-            if (_batteryState != null)
-              Text('Temperature: ${_batteryState?.temperature ?? 'N/A'}°C'),
-            if (_batteryState != null)
-              Text('Charging: ${_batteryState?.isCharging ?? 'N/A'}'),
+            if (_isLoading) const Center(child: CircularProgressIndicator()) else if (_batteryState != null) Text('Level: ${_batteryState?.level ?? 'N/A'}%'),
+            if (_batteryState != null) Text('Temperature: ${_batteryState?.temperature ?? 'N/A'}°C'),
+            if (_batteryState != null) Text('Charging: ${_batteryState?.isCharging ?? 'N/A'}'),
             const SizedBox(height: 16),
             const Text(
               'Volume State:',
