@@ -1,100 +1,75 @@
 package com.shamil.system_state;
 
-import androidx.annotation.NonNull;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.BatteryManager;
-import java.util.Map;
-import java.util.HashMap;
-
+import android.util.Log;
+import androidx.annotation.NonNull;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.EventChannel.StreamHandler;
+import io.flutter.plugin.common.EventChannel;
 
-/**
- * Plugin to provide system state information such as battery status.
- */
-public class SystemStatePlugin implements FlutterPlugin, MethodCallHandler, StreamHandler {
+public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
   private MethodChannel methodChannel;
   private EventChannel eventChannel;
   private Context context;
-  private BroadcastReceiver batteryReceiver;
-  private EventChannel.EventSink eventSink;
+  private BatteryMethod batteryManager;
+  private VolumeMethod volumeManager;
 
   @Override
-  public void onAttachedToEngine(@NonNull FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
+  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     methodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/methods");
     eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/events");
 
+    context = flutterPluginBinding.getApplicationContext();
+
+    batteryManager = new BatteryMethod(context);
+    volumeManager = new VolumeMethod(context);
+
     methodChannel.setMethodCallHandler(this);
     eventChannel.setStreamHandler(this);
-    context = flutterPluginBinding.getApplicationContext();
   }
 
   @Override
-  public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    if (call.method.equals("getBatteryState")) {
-      result.success(getBatteryState());
-    } else {
-      result.notImplemented();
-    }
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    methodChannel.setMethodCallHandler(null);
+    eventChannel.setStreamHandler(null);
   }
 
-  /**
-   * Retrieves the current battery state, including level, temperature, and charging status.
-   *
-   * @return a Map with battery level, temperature, and charging status.
-   */
-  private Map<String, Object> getBatteryState() {
-    Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-    int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-    int temperature = batteryIntent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
-    int status = batteryIntent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-
-    boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
-
-    Map<String, Object> batteryState = new HashMap<>();
-    batteryState.put("level", level);
-    batteryState.put("temperature", temperature);
-    batteryState.put("isCharging", isCharging);
-
-    return batteryState;
+  @Override
+  public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+    switch (call.method) {
+      case "getBatteryState":
+        result.success(batteryManager.getBatteryState());
+        break;
+      case "getVolume":
+        result.success(volumeManager.getVolume());
+        break;
+      case "setVolume":
+        int volume = call.argument("volume");
+        volumeManager.setVolume(volume);
+        result.success(null);
+        break;
+      default:
+        result.notImplemented();
+        break;
+    }
   }
 
   @Override
   public void onListen(Object arguments, EventChannel.EventSink events) {
-    eventSink = events;
-
-    batteryReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        if (intent.getAction() == null || !intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) return;
-
-        Map<String, Object> batteryState = getBatteryState();
-        eventSink.success(batteryState);
-      }
-    };
-
-    IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-    context.registerReceiver(batteryReceiver, filter);
+    if ("listenBatteryState".equals(arguments)) {
+      batteryManager.startListeningBatteryState(events);
+    } else if ("listenVolumeState".equals(arguments)) {
+      volumeManager.startListeningVolume(events);
+    }
   }
 
   @Override
   public void onCancel(Object arguments) {
-    context.unregisterReceiver(batteryReceiver);
-    batteryReceiver = null;
-    eventSink = null;
-  }
-
-  @Override
-  public void onDetachedFromEngine(@NonNull FlutterPlugin.FlutterPluginBinding binding) {
-    methodChannel.setMethodCallHandler(null);
-    eventChannel.setStreamHandler(null);
+    if ("listenBatteryState".equals(arguments)) {
+      batteryManager.stopListeningBatteryState();
+    } else if ("listenVolumeState".equals(arguments)) {
+      volumeManager.stopListeningVolume();
+    }
   }
 }

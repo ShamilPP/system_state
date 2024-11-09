@@ -1,169 +1,147 @@
 
 # SystemState Plugin
 
-The `system_state` plugin for Flutter provides an easy way to access and monitor device battery state and information. Future updates will introduce volume and brightness control functionalities.
+`SystemState` is a Flutter plugin designed to provide access to essential device states and controls, currently supporting Android. The plugin allows you to monitor and control **battery** and **volume** states. Future updates will extend functionality and support additional platforms.
 
 ## Features
 
-- **Battery State**: View battery level, temperature, and charging status.
-- **Battery Listener**: Listen for real-time battery state changes.
+- **Battery State Monitoring**: Retrieve and listen to battery level, temperature, and charging status.
+- **Volume Control**: Get the current system volume, set a new volume level, and listen to volume changes.
 
-### Coming Soon
-
-- Volume Control (Set, Get, and Adjust)
-- Brightness Control (Set, Get, and Adjust)
+> **Note**: Currently, `SystemState` is Android-only. Platform checks ensure that unsupported platforms throw exceptions. Future versions will include support for iOS, Web, and more.
 
 ## Installation
 
-Add `system_state` to your `pubspec.yaml` file:
+To install the plugin, add the following line to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  system_state: ^0.0.1
+  system_state: ^1.2.3
 ```
 
-Then run:
+Then, run the following command to install the package:
 
-```sh
+```bash
 flutter pub get
 ```
 
 ## Usage
 
-Import `system_state` into your Dart file:
+### Import the Package
+
+Import the `system_state` package into your Dart code:
 
 ```dart
 import 'package:system_state/system_state.dart';
 ```
 
-### Battery State Example
+### Battery Monitoring
 
-1. **Retrieve Current Battery State**
+Use `SystemState.battery` to access battery-related features:
 
-   To get the current battery state, you can call the `getBatteryState` method:
-
-   ```dart
-   Future<void> fetchBatteryState() async {
-     try {
-       BatteryState batteryState = await DeviceStats.battery.getBatteryState();
-       print('Battery Level: ${batteryState.level}%');
-       print('Battery Temperature: ${batteryState.temperature / 10.0} °C');
-       print('Is Charging: ${batteryState.isCharging}');
-     } catch (e) {
-       print('Failed to get battery state: $e');
-     }
-   }
-   ```
-
-2. **Listen for Battery State Changes**
-
-   You can also listen to real-time updates of the battery state. This will provide updates whenever there is a change in the battery’s status:
-
-   ```dart
-   void listenToBatteryState() {
-     DeviceStats.battery.listen((BatteryState batteryState) {
-       print('Battery Level: ${batteryState.level}%');
-       print('Battery Temperature: ${batteryState.temperature / 10.0} °C');
-       print('Is Charging: ${batteryState.isCharging}');
-     });
-   }
-   ```
-
-### Battery State Model
-
-The `BatteryState` model provides the following information:
-
-- **level**: Battery level as a percentage.
-- **temperature**: Battery temperature in tenths of a degree Celsius.
-- **isCharging**: Boolean indicating whether the device is charging.
-
-### Example App
-
-Here’s an example of how you could use `system_state` in an app:
+#### Get Battery State
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:system_state/system_state.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: BatteryInfoPage(),
-    );
-  }
-}
-
-class BatteryInfoPage extends StatefulWidget {
-  @override
-  _BatteryInfoPageState createState() => _BatteryInfoPageState();
-}
-
-class _BatteryInfoPageState extends State<BatteryInfoPage> {
-  BatteryState? _batteryState;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchBatteryState();
-    listenToBatteryState();
-  }
-
-  Future<void> fetchBatteryState() async {
-    try {
-      _batteryState = await DeviceStats.battery.getBatteryState();
-      setState(() {});
-    } catch (e) {
-      print('Failed to get battery state: $e');
-    }
-  }
-
-  void listenToBatteryState() {
-    DeviceStats.battery.listen((BatteryState batteryState) {
-      setState(() {
-        _batteryState = batteryState;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Battery Info')),
-      body: Center(
-        child: _batteryState == null
-            ? CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Battery Level: ${_batteryState!.level}%'),
-                  Text('Battery Temperature: ${_batteryState!.temperature / 10.0} °C'),
-                  Text('Is Charging: ${_batteryState!.isCharging}'),
-                ],
-              ),
-      ),
-    );
+// Getting the current battery state
+Future<void> getBatteryState() async {
+  try {
+    final batteryState = await SystemState.battery.getBattery();
+    print("Battery Level: ${batteryState.level}%");
+    print("Battery Temperature: ${batteryState.temperature}°C");
+    print("Is Charging: ${batteryState.isCharging}");
+  } catch (e) {
+    print("Error fetching battery state: $e");
   }
 }
 ```
+
+#### Listen to Battery State Changes
+
+```dart
+// Listening to battery state changes
+void listenBatteryState() {
+  SystemState.battery.listen((batteryState) {
+    print("Battery updated - Level: ${batteryState.level}%, Charging: ${batteryState.isCharging}");
+  });
+}
+```
+
+### Volume Control
+
+Use `SystemState.volume` to access volume-related features:
+
+#### Get Current Volume Level
+
+```dart
+// Getting the current volume level
+Future<void> getVolumeLevel() async {
+  try {
+    final volumeState = await SystemState.volume.getVolume();
+    print("Current Volume Level: ${volumeState.level}");
+  } catch (e) {
+    print("Error fetching volume state: $e");
+  }
+}
+```
+
+#### Set Volume Level
+
+```dart
+// Setting the system volume
+Future<void> setVolumeLevel(int level) async {
+  try {
+    await SystemState.volume.setVolume(level);
+    print("Volume set to $level");
+  } catch (e) {
+    print("Error setting volume: $e");
+  }
+}
+```
+
+#### Listen to Volume Changes
+
+```dart
+// Listening to volume state changes
+void listenVolumeState() {
+  SystemState.volume.listen((volumeState) {
+    print("Volume changed - Level: ${volumeState.level}");
+  });
+}
+```
+
+## API Reference
+
+- `Battery.getBattery()`: Retrieves the current battery level, temperature, and charging status.
+- `Battery.listen(void Function(BatteryState) callback)`: Listens for changes in battery status.
+- `Volume.getVolume()`: Retrieves the current system volume level.
+- `Volume.setVolume(int level)`: Sets the system volume level.
+- `Volume.listen(void Function(VolumeState) callback)`: Listens for changes in the system volume level.
+
+## Platform Support
+
+| Platform | Battery | Volume |
+|----------|---------|--------|
+| Android  | ✅      | ✅     |
+| iOS      | ❌      | ❌     |
+| Web      | ❌      | ❌     |
+
+> **Note**: Platform checks ensure the plugin throws an exception if accessed on non-Android platforms. Future versions will aim to support more platforms, including iOS and Web.
 
 ## Future Development
 
-The following features are planned for future releases:
+`SystemState` is actively under development. Future updates will introduce:
 
-- **Volume Control**: Set, get, and adjust volume.
-- **Brightness Control**: Set, get, and adjust screen brightness.
+- **Additional Device States**:
+   - Brightness Control: View and adjust screen brightness.
+   - Network State: Monitor and control network states (Wi-Fi, Bluetooth, Mobile Data, etc.).
+   - Storage Access: Retrieve storage info and manage permissions.
 
-Stay tuned for updates!
+- **Cross-Platform Support**: Plans to support iOS, Web, and other platforms.
 
 ## Contributing
 
-Feel free to contribute to this plugin. Fork the repository and submit pull requests if you would like to add features or fix bugs.
+We welcome contributions! If you have ideas or suggestions, feel free to submit issues or pull requests.
 
 ## License
 
-This plugin is released under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
