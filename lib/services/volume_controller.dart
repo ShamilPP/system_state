@@ -4,21 +4,25 @@ import 'package:flutter/services.dart';
 import '../model/volume_state.dart';
 
 /// Manages volume-related information and operations.
-class Volume {
-  Volume() {
+class VolumeController {
+  VolumeController() {
     // Platform check to make sure the plugin only works on Android
     if (Platform.isAndroid == false) {
-      throw UnsupportedError('SystemStats functionality is only supported on Android');
+      throw UnsupportedError(
+          'SystemStats functionality is only supported on Android');
     }
   }
 
-  static const MethodChannel _methodChannel = MethodChannel('system_state/methods');
-  static const EventChannel _eventChannel = EventChannel('system_state/events');
+  static const MethodChannel _methodChannel =
+      MethodChannel('system_state/methods');
+  static const EventChannel _eventChannel =
+      EventChannel('system_state/volume_events');
 
   /// Retrieves the current volume level.
   Future<VolumeState> getVolume() async {
     try {
-      final result = await _methodChannel.invokeMapMethod<String, dynamic>('getVolume');
+      final result =
+          await _methodChannel.invokeMapMethod<String, dynamic>('getVolume');
       if (result == null) {
         throw Exception("Failed to retrieve volume state.");
       }
@@ -31,8 +35,11 @@ class Volume {
   /// Listens to volume changes.
   StreamSubscription listen(void Function(VolumeState) callback) {
     try {
-      return _eventChannel.receiveBroadcastStream('listenVolumeState').listen((data) {
-        final volumeState = VolumeState.fromMap(Map<String, dynamic>.from(data));
+      return _eventChannel
+          .receiveBroadcastStream('listenVolume')
+          .listen((data) {
+        final volumeState =
+            VolumeState.fromMap(Map<String, dynamic>.from(data));
         callback(volumeState);
       });
     } catch (e) {

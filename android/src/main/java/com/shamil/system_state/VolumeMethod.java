@@ -5,10 +5,7 @@ import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.provider.Settings;
-import android.util.Log;
-
 import io.flutter.plugin.common.EventChannel;
-
 import java.util.HashMap;
 import java.util.Map;
 

@@ -1,129 +1,141 @@
 import 'package:flutter/material.dart';
 import 'package:system_state/system_state.dart';
-import 'package:system_state/model/battery_state.dart';
-import 'package:system_state/model/volume_state.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SystemStateExampleApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class SystemStateExampleApp extends StatelessWidget {
+  const SystemStateExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'System State Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const SystemStatePage(),
+      title: 'SystemState Example',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const SystemStateHomePage(),
     );
   }
 }
 
-class SystemStatePage extends StatefulWidget {
-  const SystemStatePage({Key? key}) : super(key: key);
+class SystemStateHomePage extends StatefulWidget {
+  const SystemStateHomePage({super.key});
 
   @override
-  _SystemStatePageState createState() => _SystemStatePageState();
+  _SystemStateHomePageState createState() => _SystemStateHomePageState();
 }
 
-class _SystemStatePageState extends State<SystemStatePage> {
+class _SystemStateHomePageState extends State<SystemStateHomePage> {
   BatteryState? _batteryState;
   VolumeState? _volumeState;
-  bool _isLoading = true; // To show the loading indicator
-  bool _isListening = false; // To check if listening has started
+  WifiState? _wifiState;
+
+  bool _isBatteryLoading = false;
+  bool _isVolumeLoading = false;
+  bool _isWifiLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _initBatteryState();
-    _initVolumeState();
+    _fetchAllStates();
   }
 
-  // Initialize Battery State
-  void _initBatteryState() async {
+  Future<void> _fetchAllStates() async {
+    _getBatteryState();
+    _getVolumeState();
+    _getWifiState();
+  }
+
+  Future<void> _getBatteryState() async {
+    setState(() => _isBatteryLoading = true);
     try {
       final batteryState = await SystemState.battery.getBattery();
-      setState(() {
-        _batteryState = batteryState;
-        _isLoading = false; // Stop loading once data is fetched
-      });
+      setState(() => _batteryState = batteryState);
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       print("Error fetching battery state: $e");
+    } finally {
+      setState(() => _isBatteryLoading = false);
     }
   }
 
-  // Initialize Volume State
-  void _initVolumeState() async {
+  Future<void> _getVolumeState() async {
+    setState(() => _isVolumeLoading = true);
     try {
       final volumeState = await SystemState.volume.getVolume();
-      setState(() {
-        _volumeState = volumeState;
-        _isLoading = false; // Stop loading once data is fetched
-      });
+      setState(() => _volumeState = volumeState);
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       print("Error fetching volume state: $e");
+    } finally {
+      setState(() => _isVolumeLoading = false);
     }
   }
 
-  // Start listening to battery and volume state changes
-  void _startListening() {
-    setState(() {
-      _isListening = true;
-    });
-
-    SystemState.battery.listen((batteryState) {
-      setState(() {
-        _batteryState = batteryState;
-      });
-    });
-
-    SystemState.volume.listen((volumeState) {
-      setState(() {
-        _volumeState = volumeState;
-      });
-    });
+  Future<void> _getWifiState() async {
+    setState(() => _isWifiLoading = true);
+    try {
+      final wifiState = await SystemState.wifi.getWifi();
+      setState(() => _wifiState = wifiState);
+    } catch (e) {
+      print("Error fetching Wi-Fi state: $e");
+    } finally {
+      setState(() => _isWifiLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('System State Example'),
+        title: const Text('SystemState Example'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Battery State:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // Battery Section
+            ListTile(
+              title: const Text("Battery"),
+              subtitle: _isBatteryLoading
+                  ? const CircularProgressIndicator()
+                  : Text(_batteryState != null
+                      ? "Level: ${_batteryState!.level}%"
+                      : "Battery data not available"),
+              trailing: ElevatedButton(
+                onPressed: _getBatteryState,
+                child: const Text("Refresh"),
+              ),
             ),
-            if (_isLoading) const Center(child: CircularProgressIndicator()) else if (_batteryState != null) Text('Level: ${_batteryState?.level ?? 'N/A'}%'),
-            if (_batteryState != null) Text('Temperature: ${_batteryState?.temperature ?? 'N/A'}°C'),
-            if (_batteryState != null) Text('Charging: ${_batteryState?.isCharging ?? 'N/A'}'),
-            const SizedBox(height: 16),
-            const Text(
-              'Volume State:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const Divider(),
+
+            // Volume Section
+            ListTile(
+              title: const Text("Volume"),
+              subtitle: _isVolumeLoading
+                  ? const CircularProgressIndicator()
+                  : Text(_volumeState != null
+                      ? "Current Volume: ${_volumeState!.level}"
+                      : "Volume data not available"),
+              trailing: ElevatedButton(
+                onPressed: _getVolumeState,
+                child: const Text("Refresh"),
+              ),
             ),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_volumeState != null)
-              Text('Volume Level: ${_volumeState?.level ?? 'N/A'}'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _startListening,
-              child: Text(_isListening ? 'Listening...' : 'START Listening'),
+            const Divider(),
+
+            // Wi-Fi Section
+            ListTile(
+              title: const Text("Wi-Fi"),
+              subtitle: _isWifiLoading
+                  ? const CircularProgressIndicator()
+                  : Text(_wifiState != null
+                      ? _wifiState!.isEnabled
+                          ? "Connected to ${_wifiState!.connectedWifiName ?? 'Unknown Network'}"
+                          : "Wi-Fi is disabled"
+                      : "Wi-Fi data not available"),
+              trailing: ElevatedButton(
+                onPressed: _getWifiState,
+                child: const Text("Refresh"),
+              ),
             ),
           ],
         ),
