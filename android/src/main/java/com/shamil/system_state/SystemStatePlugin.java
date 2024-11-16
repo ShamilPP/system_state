@@ -9,11 +9,12 @@ import io.flutter.plugin.common.EventChannel;
 
 public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
   private MethodChannel methodChannel;
-  private EventChannel batteryEventChannel, volumeEventChannel, wifiEventChannel;
+  private EventChannel batteryEventChannel, volumeEventChannel, wifiEventChannel, mobileDataEventChannel;
   private Context context;
   private BatteryMethod batteryManager;
   private VolumeMethod volumeManager;
   private WifiMethod wifiManager;
+  private MobileDataMethod mobileDataManager;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -21,17 +22,20 @@ public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCal
     batteryEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/battery_events");
     volumeEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/volume_events");
     wifiEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/wifi_events");
+    mobileDataEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "system_state/mobile_data_events");
 
     context = flutterPluginBinding.getApplicationContext();
 
     batteryManager = new BatteryMethod(context);
     volumeManager = new VolumeMethod(context);
     wifiManager = new WifiMethod(context);
+    mobileDataManager = new MobileDataMethod(context);
 
     methodChannel.setMethodCallHandler(this);
     batteryEventChannel.setStreamHandler(this);
     volumeEventChannel.setStreamHandler(this);
     wifiEventChannel.setStreamHandler(this);
+    mobileDataEventChannel.setStreamHandler(this);
   }
 
   @Override
@@ -40,6 +44,7 @@ public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCal
     batteryEventChannel.setStreamHandler(null);
     volumeEventChannel.setStreamHandler(null);
     wifiEventChannel.setStreamHandler(null);
+    mobileDataEventChannel.setStreamHandler(this);
   }
 
   @Override
@@ -60,9 +65,12 @@ public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCal
         result.success(wifiManager.getWifiState());
         break;
       case "setWifi":
-        boolean enabled = call.argument("wifi");
-        boolean success = wifiManager.setWifiState(enabled);
-        result.success(success);
+        boolean wifiEnable = call.argument("wifi");
+        boolean wifiSuccess = wifiManager.setWifiState(wifiEnable);
+        result.success(wifiSuccess);
+        break;
+      case "getMobileData":
+        result.success(mobileDataManager.getMobileDataState());
         break;
       default:
         result.notImplemented();
@@ -78,6 +86,8 @@ public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCal
       volumeManager.startListeningVolume(events);
     } else if ("listenWifiState".equals(arguments)) {
       wifiManager.startListeningWifiState(events);
+    } else if ("listenMobileDataState".equals(arguments)) {
+      mobileDataManager.startListeningMobileDataState(events);
     }
   }
 
@@ -89,6 +99,8 @@ public class SystemStatePlugin implements FlutterPlugin, MethodChannel.MethodCal
       volumeManager.stopListeningVolume();
     } else if ("listenWifiState".equals(arguments)) {
       wifiManager.stopListeningWifiState();
+    } else if ("listenMobileDataState".equals(arguments)) {
+      mobileDataManager.stopListeningMobileDataState();
     }
   }
 }

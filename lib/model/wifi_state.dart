@@ -24,13 +24,4 @@ class WifiState {
       connectedWifiName: map['connectedWifiName'],
     );
   }
-
-  /// Converts the [WifiState] to a map, useful for debugging or sending data.
-  Map<String, dynamic> toMap() {
-    return {
-      'isEnabled': isEnabled,
-      'isConnected': isConnected,
-      'connectedWifiName': connectedWifiName,
-    };
-  }
 }
