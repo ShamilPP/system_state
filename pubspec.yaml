@@ -1,39 +1,6 @@
 name: system_state
-description: |
-  The **SystemState** plugin for Flutter provides access to essential Android device states and controls. With this plugin, you can monitor and control **Battery**, **Wi-Fi**, **Mobile Data**, and **Volume** functionalities. Perfect for apps that need device management or real-time system updates.
-
-  Key features:
-  - **Mobile Data State Monitoring and Control**: 
-    - Check if mobile data is enabled.
-    - Retrieve SIM operator name, network operator, and network type (e.g., 4G, 5G).
-    - Listen to mobile data state changes.
-  - **Wi-Fi State Monitoring and Control**: 
-    - Check if Wi-Fi is enabled or connected.
-    - Retrieve connected Wi-Fi name (`connectedWifiName`).
-    - Enable or disable Wi-Fi.
-    - Listen to Wi-Fi state changes.
-  - **Battery State Monitoring**: 
-    - Monitor battery level, temperature, and charging status.
-    - Listen to battery state changes.
-  - **Volume Control**: 
-    - Get and set the system volume.
-    - Listen to volume changes.
-
-  **Note**: Currently, the plugin supports Android only.
-
-tags:
-  - flutter
-  - mobile data
-  - battery control
-  - wifi control
-  - system state
-  - volume control
-  - android plugin
-  - network operator
-  - mobile data state
-  - device management
-
-version: 1.2.5
+description: A Flutter plugin for monitoring and controlling system states like battery, Wi-Fi, volume, and mobile data on Android.
+version: 1.2.6
 homepage: https://github.com/ShamilPP/system_state
 
 environment:

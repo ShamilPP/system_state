@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.5]
+## [1.2.6]
 ### Added
 - **Mobile Data Controller**:
   - Functionality to check if mobile data is enabled.

@@ -23,7 +23,7 @@ To install the plugin, add the following line to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  system_state: ^1.2.5
+  system_state: ^1.2.6
 ```
 
 Then, run the following command to install the package:
